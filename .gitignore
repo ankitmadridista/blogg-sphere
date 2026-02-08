@@ -1,0 +1,56 @@
+# Python-specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+
+# Flask-related
+instance/
+.webassets-cache
+
+# Database
+app.db
+*.sqlite3
+*.db
+
+# Flask migrations
+migrations/
+*.egg-info
+
+# Virtual environment
+venv/
+env/
+ENV/
+*.env
+
+# IDEs and editors
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Log files
+logs/
+
+# Temporary files
+*.bak
+*.swp
+*.swo
+
+# Coverage files (for testing)
+.coverage
+*.cover
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Other
+*.log
