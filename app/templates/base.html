@@ -36,11 +36,16 @@
 
 {% block content %}
     <div class="container">
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-            {% endfor %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <!-- Use Bootstrap alert classes based on the category -->
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
         {% endwith %}
 
@@ -52,4 +57,15 @@
 {% block scripts %}
     {{ super() }}     <!-- super() statement, which preserves the content from the base template -->
     {{ moment.include_moment() }}
+{% endblock %}
+
+{% block style %}
+    <style>
+        /* Flash message alert box styling */
+        .flash-messages .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
 {% endblock %}
