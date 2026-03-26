@@ -3,21 +3,21 @@ alembic==1.10.4
 SQLAlchemy==1.4.46
 Flask-SQLAlchemy==2.5.1
 Flask-Migrate==2.5.2
+psycopg2-binary==2.9.9
 
 # Flask Framework
 Flask==2.2.5
-Werkzeug==2.2.2  # Explicitly pin the version of Werkzeug that works with Flask 2.2.x
+Werkzeug==2.2.2
 
 # Flask Extensions
-Flask-Babel==2.0.0  # Compatible with Flask 2.2.x
+Flask-Babel==2.0.0
 Flask-Admin==1.5.6
 Flask-Bootstrap==3.3.7.1
 Flask-Compress==1.4.0
 Flask-Login==0.6.3
 Flask-Mail==0.9.1
 Flask-Moment==1.0.6
-Flask-WeasyPrint==0.6
-Flask-WTF==1.0.1  # Updated to version that supports Werkzeug 2.x
+Flask-WTF==1.0.1
 
 # Web scraping
 beautifulsoup4==4.7.1
@@ -34,3 +34,4 @@ itsdangerous==2.0.1
 Jinja2==3.1.6
 python-dotenv==0.18.0
 pytz==2023.3
+PyJWT==2.4.0
