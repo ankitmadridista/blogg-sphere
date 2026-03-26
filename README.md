@@ -60,7 +60,7 @@ pip install -r requirements.txt
 To initialize or migrate the database, you need to run the following command:
 
 ```bash
-flask db upgrade
+python -m flask db upgrade
 ```
 
 ## Running the Application
@@ -68,7 +68,7 @@ flask db upgrade
 After setting up everything, you can start the Flask development server:
 
 ```bash
-flask run
+python -m flask run
 ```
 
 ## Commit and Ignore Files
