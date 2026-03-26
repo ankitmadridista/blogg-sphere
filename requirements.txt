@@ -21,7 +21,7 @@ Flask-WTF==1.0.1  # Updated to version that supports Werkzeug 2.x
 
 # Web scraping
 beautifulsoup4==4.7.1
-lxml==4.3.3
+lxml==5.1.0
 html5lib==1.1
 
 # Others
