@@ -1,6 +1,6 @@
-# BlogApp
+# BloggSphere
 
-BlogApp is a web application built using Flask. It includes features such as user authentication, blog posts, and multi-language support. This guide will help you set up and run the application locally.
+BloggSphere is a web application built using Flask. It includes features such as user authentication, blog posts, and multi-language support. This guide will help you set up and run the application locally.
 
 ---
 
