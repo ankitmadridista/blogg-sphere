@@ -49,3 +49,6 @@ def get_locale():
 from app import routes, models, errors
 from app.utils import render_markdown
 app.jinja_env.filters['markdown'] = render_markdown
+
+from flask_wtf.csrf import generate_csrf
+app.jinja_env.globals['csrf_token'] = generate_csrf

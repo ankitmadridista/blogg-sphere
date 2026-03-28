@@ -72,3 +72,9 @@ class PostForm(FlaskForm):
     title = StringField(_l('Title'), validators=[DataRequired(), Length(max=140)])
     post = TextAreaField(_l('Say something'), validators=[DataRequired(), Length(max=5000)])
     submit = SubmitField(_l('Submit'))
+
+
+class EditPostForm(FlaskForm):
+    title = StringField(_l('Title'), validators=[DataRequired(), Length(max=140)])
+    body = TextAreaField(_l('Body'), validators=[DataRequired(), Length(max=5000)])
+    submit = SubmitField(_l('Save'))

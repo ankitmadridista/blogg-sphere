@@ -1,11 +1,11 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request, g
+from flask import render_template, flash, redirect, url_for, request, g, abort
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
-    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm
+    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm
 from app.models import User, Post
 from app.email import send_password_reset_email
 
@@ -45,7 +45,7 @@ def index():
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.timestamp.desc()).paginate(
+    posts = Post.query.filter(Post.is_deleted == False).order_by(Post.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('explore', page=posts.next_num) \
         if posts.has_next else None
@@ -132,7 +132,7 @@ def reset_password(token):
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    posts = user.posts.order_by(Post.timestamp.desc()).paginate(
+    posts = user.posts.filter(Post.is_deleted == False).order_by(Post.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('user', username=user.username, page=posts.next_num) \
         if posts.has_next else None
@@ -198,3 +198,48 @@ def unfollow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
+
+
+def _check_post_author(post):
+    """Abort 403 if current_user is not the post author."""
+    if post.user_id != current_user.id:
+        abort(403)
+
+
+@app.route('/edit_post/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_post(id):
+    post = Post.query.get_or_404(id)
+    _check_post_author(post)
+    form = EditPostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.body = form.body.data
+        db.session.commit()
+        flash(_('Your post has been updated.'), 'info')
+        return redirect(url_for('post_detail', id=post.id))
+    elif request.method == 'GET':
+        form.title.data = post.title
+        form.body.data = post.body
+    return render_template('edit_post.html', title=_('Edit Post'),
+                           form=form, post=post)
+
+
+@app.route('/delete_post/<int:id>', methods=['POST'])
+@login_required
+def delete_post(id):
+    post = Post.query.get_or_404(id)
+    _check_post_author(post)
+    post.is_deleted = True
+    db.session.commit()
+    flash(_('Your post has been deleted.'), 'info')
+    return redirect(url_for('index'))
+
+
+@app.route('/post/<int:id>')
+@login_required
+def post_detail(id):
+    post = Post.query.get_or_404(id)
+    if post.is_deleted:
+        abort(404)
+    return render_template('post_detail.html', title=post.title, post=post)
