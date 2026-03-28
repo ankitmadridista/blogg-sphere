@@ -11,7 +11,8 @@
             </a>
             said {{ moment(post.timestamp).fromNow() }}:
             <br>
-            {{ post.body }}
+            <strong>{{ post.title }}</strong>
+            {{ post.body | markdown | safe }}
         </td>
     </tr>
 </table>
