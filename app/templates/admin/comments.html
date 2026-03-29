@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h2>Admin — Comments</h2>
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm mb-3">← Dashboard</a>
+<table class="table table-hover">
+    <thead>
+        <tr><th>ID</th><th>Author</th><th>Post</th><th>Body</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for c in comments.items %}
+        <tr class="{% if c.is_deleted %}table-secondary{% endif %}">
+            <td>{{ c.id }}</td>
+            <td>{{ c.author.username }}</td>
+            <td><a href="{{ url_for('post_detail', id=c.post_id) }}">{{ c.post.title[:40] }}</a></td>
+            <td class="text-truncate" style="max-width:200px;">{{ c.body[:80] }}</td>
+            <td>{% if c.is_deleted %}<span class="badge bg-danger">Deleted</span>{% else %}<span class="badge bg-success">Active</span>{% endif %}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin_toggle_comment', id=c.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {% if c.is_deleted %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                        {% if c.is_deleted %}Restore{% else %}Delete{% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav><ul class="pagination">
+    <li class="page-item {% if not comments.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_comments', page=comments.prev_num) or '#' }}">&larr;</a></li>
+    <li class="page-item {% if not comments.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_comments', page=comments.next_num) or '#' }}">&rarr;</a></li>
+</ul></nav>
+{% endblock %}

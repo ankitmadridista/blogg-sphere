@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h2>Admin — Users</h2>
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm mb-3">← Dashboard</a>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>ID</th><th>Username</th><th>Email</th><th>Admin</th><th>Active</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users.items %}
+        <tr class="{% if not u.is_active %}table-secondary{% endif %}">
+            <td>{{ u.id }}</td>
+            <td><a href="{{ url_for('user', username=u.username) }}">{{ u.username }}</a></td>
+            <td>{{ u.email }}</td>
+            <td>{% if u.is_admin %}<span class="badge bg-warning">Admin</span>{% endif %}</td>
+            <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin_toggle_user', id=u.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                        {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav><ul class="pagination">
+    <li class="page-item {% if not users.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_users', page=users.prev_num) or '#' }}">&larr;</a></li>
+    <li class="page-item {% if not users.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_users', page=users.next_num) or '#' }}">&rarr;</a></li>
+</ul></nav>
+{% endblock %}

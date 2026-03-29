@@ -565,3 +565,94 @@ def notifications():
         n.is_read = True
     db.session.commit()
     return render_template('notifications.html', title=_('Notifications'), notifications=notifs)
+
+
+# ── Admin ──────────────────────────────────────────────────────────────────
+
+def admin_required(f):
+    """Decorator that aborts with 403 if current user is not an admin."""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    user_count = User.query.count()
+    post_count = Post.query.filter_by(is_deleted=False).count()
+    comment_count = Comment.query.filter_by(is_deleted=False).count()
+    return render_template('admin/dashboard.html', title='Admin',
+                           user_count=user_count, post_count=post_count,
+                           comment_count=comment_count)
+
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    page = request.args.get('page', 1, type=int)
+    users = User.query.order_by(User.username).paginate(page, 25, False)
+    return render_template('admin/users.html', title='Admin — Users', users=users)
+
+
+@app.route('/admin/user/<int:id>/toggle_active', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_user(id):
+    user = User.query.get_or_404(id)
+    if user == current_user:
+        flash('You cannot deactivate your own account.', 'error')
+        return redirect(url_for('admin_users'))
+    user.is_active = not user.is_active
+    db.session.commit()
+    status = 'activated' if user.is_active else 'deactivated'
+    flash(f'User "{user.username}" has been {status}.', 'info')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/posts')
+@login_required
+@admin_required
+def admin_posts():
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.timestamp.desc()).paginate(page, 25, False)
+    return render_template('admin/posts.html', title='Admin — Posts', posts=posts)
+
+
+@app.route('/admin/post/<int:id>/toggle_delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_post(id):
+    post = Post.query.get_or_404(id)
+    post.is_deleted = not post.is_deleted
+    db.session.commit()
+    status = 'restored' if not post.is_deleted else 'deleted'
+    flash(f'Post "{post.title}" has been {status}.', 'info')
+    return redirect(url_for('admin_posts'))
+
+
+@app.route('/admin/comments')
+@login_required
+@admin_required
+def admin_comments():
+    page = request.args.get('page', 1, type=int)
+    comments = Comment.query.order_by(Comment.timestamp.desc()).paginate(page, 25, False)
+    return render_template('admin/comments.html', title='Admin — Comments', comments=comments)
+
+
+@app.route('/admin/comment/<int:id>/toggle_delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_comment(id):
+    comment = Comment.query.get_or_404(id)
+    comment.is_deleted = not comment.is_deleted
+    db.session.commit()
+    status = 'restored' if not comment.is_deleted else 'deleted'
+    flash(f'Comment has been {status}.', 'info')
+    return redirect(url_for('admin_comments'))

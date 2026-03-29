@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h2>Admin — Posts</h2>
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm mb-3">← Dashboard</a>
+<table class="table table-hover">
+    <thead>
+        <tr><th>ID</th><th>Title</th><th>Author</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for p in posts.items %}
+        <tr class="{% if p.is_deleted %}table-secondary{% endif %}">
+            <td>{{ p.id }}</td>
+            <td><a href="{{ url_for('post_detail', id=p.id) }}">{{ p.title }}</a></td>
+            <td>{{ p.author.username }}</td>
+            <td>{{ p.timestamp.strftime('%Y-%m-%d') }}</td>
+            <td>{% if p.is_deleted %}<span class="badge bg-danger">Deleted</span>{% else %}<span class="badge bg-success">Active</span>{% endif %}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin_toggle_post', id=p.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {% if p.is_deleted %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                        {% if p.is_deleted %}Restore{% else %}Delete{% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav><ul class="pagination">
+    <li class="page-item {% if not posts.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_posts', page=posts.prev_num) or '#' }}">&larr;</a></li>
+    <li class="page-item {% if not posts.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('admin_posts', page=posts.next_num) or '#' }}">&rarr;</a></li>
+</ul></nav>
+{% endblock %}
