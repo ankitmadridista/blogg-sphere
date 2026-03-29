@@ -5,8 +5,9 @@ from werkzeug.urls import url_parse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
-    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm
-from app.models import User, Post
+    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm, \
+    CommentForm, EditCommentForm
+from app.models import User, Post, Comment
 from app.email import send_password_reset_email
 
 
@@ -242,4 +243,77 @@ def post_detail(id):
     post = Post.query.get_or_404(id)
     if post.is_deleted:
         abort(404)
-    return render_template('post_detail.html', title=post.title, post=post)
+    top_level = post.comments.filter_by(parent_id=None) \
+                              .order_by(Comment.timestamp.asc()).all()
+    form = CommentForm()
+    return render_template('post_detail.html', title=post.title,
+                           post=post, comments=top_level, form=form)
+
+
+def _check_comment_author(comment):
+    """Abort 403 if current_user is not the comment author."""
+    if comment.user_id != current_user.id:
+        abort(403)
+
+
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.is_deleted:
+        abort(404)
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(body=form.body.data, author=current_user,
+                          post=post, parent_id=None)
+        db.session.add(comment)
+        db.session.commit()
+        flash(_('Your comment has been posted.'), 'info')
+    return redirect(url_for('post_detail', id=post_id))
+
+
+@app.route('/post/<int:post_id>/comment/<int:comment_id>/reply', methods=['POST'])
+@login_required
+def add_reply(post_id, comment_id):
+    post = Post.query.get_or_404(post_id)
+    if post.is_deleted:
+        abort(404)
+    parent = Comment.query.get_or_404(comment_id)
+    if parent.parent_id is not None:
+        abort(400)
+    form = CommentForm()
+    if form.validate_on_submit():
+        reply = Comment(body=form.body.data, author=current_user,
+                        post=post, parent_id=parent.id)
+        db.session.add(reply)
+        db.session.commit()
+        flash(_('Your reply has been posted.'), 'info')
+    return redirect(url_for('post_detail', id=post_id))
+
+
+@app.route('/comment/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_comment(id):
+    comment = Comment.query.get_or_404(id)
+    _check_comment_author(comment)
+    form = EditCommentForm()
+    if form.validate_on_submit():
+        comment.body = form.body.data
+        db.session.commit()
+        flash(_('Your comment has been updated.'), 'info')
+        return redirect(url_for('post_detail', id=comment.post_id))
+    elif request.method == 'GET':
+        form.body.data = comment.body
+    return render_template('edit_comment.html', title=_('Edit Comment'),
+                           form=form, comment=comment)
+
+
+@app.route('/comment/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_comment(id):
+    comment = Comment.query.get_or_404(id)
+    _check_comment_author(comment)
+    comment.is_deleted = True
+    db.session.commit()
+    flash(_('Your comment has been deleted.'), 'info')
+    return redirect(url_for('post_detail', id=comment.post_id))

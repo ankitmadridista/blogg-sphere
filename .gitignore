@@ -49,6 +49,9 @@ logs/
 .coverage
 *.cover
 
+# Hypothesis (property-based testing)
+.hypothesis/
+
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 

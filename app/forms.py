@@ -78,3 +78,12 @@ class EditPostForm(FlaskForm):
     title = StringField(_l('Title'), validators=[DataRequired(), Length(max=140)])
     body = TextAreaField(_l('Body'), validators=[DataRequired(), Length(max=5000)])
     submit = SubmitField(_l('Save'))
+
+
+class CommentForm(FlaskForm):
+    body   = TextAreaField(_l('Comment'), validators=[DataRequired(), Length(max=2000)])
+    submit = SubmitField(_l('Post Comment'))
+
+class EditCommentForm(FlaskForm):
+    body   = TextAreaField(_l('Comment'), validators=[DataRequired(), Length(max=2000)])
+    submit = SubmitField(_l('Save'))

@@ -92,3 +92,25 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.title)
+
+    @property
+    def comment_count(self):
+        return self.comments.filter_by(is_deleted=False).count()
+
+
+class Comment(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    body       = db.Column(db.String(2000), nullable=False)
+    timestamp  = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id    = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    parent_id  = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+
+    author = db.relationship('User', backref=db.backref('comments', lazy='dynamic'))
+    post   = db.relationship('Post', backref=db.backref('comments', lazy='dynamic'))
+    parent = db.relationship('Comment', remote_side=[id],
+                             backref=db.backref('replies', lazy='dynamic'))
+
+    def __repr__(self):
+        return '<Comment {}>'.format(self.id)

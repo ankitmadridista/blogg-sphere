@@ -16,6 +16,12 @@
             </strong>
             {{ post.body | markdown | safe }}
 
+            <div style="margin-top:4px;">
+                <a href="{{ url_for('post_detail', id=post.id) }}" class="text-muted">
+                    <small>{{ post.comment_count }} {{ _('comment(s)') }}</small>
+                </a>
+            </div>
+
             {% if current_user.is_authenticated and current_user.id == post.author.id %}
             <div class="post-actions" style="margin-top:6px;">
                 <a href="{{ url_for('edit_post', id=post.id) }}"

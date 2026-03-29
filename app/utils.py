@@ -4,9 +4,15 @@ import bleach
 ALLOWED_TAGS = [
     'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
     'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
-    'h1', 'h2', 'h3', 'p', 'br',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
-ALLOWED_ATTRIBUTES = {'a': ['href', 'title'], 'abbr': ['title'], 'acronym': ['title']}
+ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title'],
+    'img': ['src', 'alt', 'title'],
+}
 
 _md = mistune.create_markdown()
 
