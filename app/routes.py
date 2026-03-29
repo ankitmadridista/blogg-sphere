@@ -7,7 +7,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm, \
     CommentForm, EditCommentForm, ChangePasswordForm, ChangeEmailForm, DeleteAccountForm
-from app.models import User, Post, Comment, post_like
+from app.models import User, Post, Comment, post_like, Tag
 from app.email import send_password_reset_email
 
 
@@ -26,6 +26,15 @@ def index():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(title=form.title.data, body=form.post.data, author=current_user)
+        # Process tags
+        if form.tags.data:
+            tag_names = [t.strip().lower() for t in form.tags.data.split(',') if t.strip()]
+            for name in tag_names[:5]:  # limit to 5 tags per post
+                tag = Tag.query.filter_by(name=name).first()
+                if not tag:
+                    tag = Tag(name=name)
+                    db.session.add(tag)
+                post.tags.append(tag)
         db.session.add(post)
         db.session.commit()
         flash(_('Your post is now live!'), 'info')
@@ -216,12 +225,23 @@ def edit_post(id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.body = form.body.data
+        # Update tags
+        post.tags = []
+        if form.tags.data:
+            tag_names = [t.strip().lower() for t in form.tags.data.split(',') if t.strip()]
+            for name in tag_names[:5]:
+                tag = Tag.query.filter_by(name=name).first()
+                if not tag:
+                    tag = Tag(name=name)
+                    db.session.add(tag)
+                post.tags.append(tag)
         db.session.commit()
         flash(_('Your post has been updated.'), 'info')
         return redirect(url_for('post_detail', id=post.id))
     elif request.method == 'GET':
         form.title.data = post.title
         form.body.data = post.body
+        form.tags.data = ', '.join(t.name for t in post.tags)
     return render_template('edit_post.html', title=_('Edit Post'),
                            form=form, post=post)
 
@@ -474,3 +494,43 @@ def remove_avatar():
     db.session.commit()
     flash(_('Profile picture removed.'), 'info')
     return redirect(url_for('account_settings'))
+
+
+@app.route('/tag/<name>')
+@login_required
+def tag(name):
+    tag = Tag.query.filter_by(name=name).first_or_404()
+    page = request.args.get('page', 1, type=int)
+    posts = tag.posts.filter(Post.is_deleted == False) \
+                     .order_by(Post.timestamp.desc()) \
+                     .paginate(page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('tag', name=name, page=posts.next_num) if posts.has_next else None
+    prev_url = url_for('tag', name=name, page=posts.prev_num) if posts.has_prev else None
+    return render_template('tag.html', title=f'#{name}', tag=tag,
+                           posts=posts.items, next_url=next_url, prev_url=prev_url)
+
+
+@app.route('/trending')
+@login_required
+def trending():
+    from sqlalchemy import func
+    # Score = like_count + comment_count, all-time
+    like_counts = db.session.query(
+        post_like.c.post_id,
+        func.count(post_like.c.user_id).label('likes')
+    ).group_by(post_like.c.post_id).subquery()
+
+    comment_counts = db.session.query(
+        Comment.post_id,
+        func.count(Comment.id).label('comments')
+    ).filter(Comment.is_deleted == False).group_by(Comment.post_id).subquery()
+
+    posts = db.session.query(Post).filter(Post.is_deleted == False) \
+        .outerjoin(like_counts, Post.id == like_counts.c.post_id) \
+        .outerjoin(comment_counts, Post.id == comment_counts.c.post_id) \
+        .order_by(
+            (func.coalesce(like_counts.c.likes, 0) +
+             func.coalesce(comment_counts.c.comments, 0)).desc()
+        ).limit(20).all()
+
+    return render_template('trending.html', title=_('Trending'), posts=posts)

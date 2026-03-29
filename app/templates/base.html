@@ -25,7 +25,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+    <nav class="navbar navbar-expand-lg border-bottom" style="background-color: var(--bs-body-bg)">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">blogg-sphere</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('explore') }}">Explore</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('trending') }}">Trending</a></li>
                 </ul>
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if current_user.is_anonymous %}

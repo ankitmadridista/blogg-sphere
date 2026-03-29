@@ -16,6 +16,11 @@
                     {{ form.body(class='form-control', rows=8) }}
                     {% for error in form.body.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                 </div>
+                <div class="mb-3">
+                    {{ form.tags.label(class='form-label') }}
+                    {{ form.tags(class='form-control', placeholder='python, flask, web') }}
+                    <div class="form-text">Separate tags with commas. Max 5 tags.</div>
+                </div>
                 {{ form.submit(class='btn btn-primary') }}
                 <a href="{{ url_for('index') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
             </form>

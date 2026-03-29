@@ -20,6 +20,13 @@ post_like = db.Table(
     db.PrimaryKeyConstraint('user_id', 'post_id')
 )
 
+post_tag = db.Table(
+    'post_tag',
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), nullable=False),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), nullable=False),
+    db.PrimaryKeyConstraint('post_id', 'tag_id')
+)
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -93,6 +100,14 @@ def load_user(id):
     return User.query.get(int(id))
 
 
+class Tag(db.Model):
+    id   = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False, index=True)
+
+    def __repr__(self):
+        return '<Tag {}>'.format(self.name)
+
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(140), nullable=False)
@@ -100,6 +115,7 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    tags = db.relationship('Tag', secondary='post_tag', backref=db.backref('posts', lazy='dynamic'))
 
     def __repr__(self):
         return '<Post {}>'.format(self.title)

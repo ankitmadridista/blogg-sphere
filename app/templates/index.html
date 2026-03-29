@@ -13,6 +13,10 @@
             {{ form.post(class='form-control', rows=3, placeholder=_('Say something')) }}
             {% for error in form.post.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
         </div>
+        <div class="mb-2">
+            {{ form.tags(class='form-control mb-1', placeholder='Tags: python, flask, web (comma separated)') }}
+            <div class="form-text small">Separate tags with commas. Max 5 tags.</div>
+        </div>
         {{ form.submit(class='btn btn-primary btn-sm') }}
     </form>
     {% endif %}

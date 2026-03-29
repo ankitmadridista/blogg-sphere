@@ -13,6 +13,13 @@
                     <a href="{{ url_for('post_detail', id=post.id) }}" class="text-decoration-none">{{ post.title }}</a>
                 </h6>
                 <div class="mb-2">{{ post.body | markdown | safe }}</div>
+                {% if post.tags %}
+                <div class="mb-2">
+                    {% for t in post.tags %}
+                    <a href="{{ url_for('tag', name=t.name) }}" class="badge bg-secondary text-decoration-none me-1">#{{ t.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 <div class="d-flex align-items-center gap-3">
                     <a href="{{ url_for('post_detail', id=post.id) }}" class="text-muted text-decoration-none small">
                         <i class="bi bi-chat"></i> {{ post.comment_count }} {{ _('comment(s)') }}

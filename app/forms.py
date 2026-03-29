@@ -71,12 +71,14 @@ class EmptyForm(FlaskForm):
 class PostForm(FlaskForm):
     title = StringField(_l('Title'), validators=[DataRequired(), Length(max=140)])
     post = TextAreaField(_l('Say something'), validators=[DataRequired(), Length(max=5000)])
+    tags = StringField(_l('Tags (comma separated, e.g. python, flask)'), validators=[Length(max=200)])
     submit = SubmitField(_l('Submit'))
 
 
 class EditPostForm(FlaskForm):
     title = StringField(_l('Title'), validators=[DataRequired(), Length(max=140)])
     body = TextAreaField(_l('Body'), validators=[DataRequired(), Length(max=5000)])
+    tags = StringField(_l('Tags (comma separated)'), validators=[Length(max=200)])
     submit = SubmitField(_l('Save'))
 
 
