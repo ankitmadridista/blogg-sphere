@@ -2,18 +2,20 @@
 
 {% block app_content %}
     <h1>{{ _('Edit Comment') }}</h1>
-    <form method="post">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group">
-            {{ form.body(class='form-control', rows=4) }}
-            {% for error in form.body.errors %}
-                <span class="help-block text-danger">{{ error }}</span>
-            {% endfor %}
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.body.label(class='form-label') }}
+                    {{ form.body(class='form-control', rows=4) }}
+                    {% for error in form.body.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="d-flex gap-2">
+                    {{ form.submit(class='btn btn-primary') }}
+                    <a href="{{ url_for('post_detail', id=comment.post_id) }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
+                </div>
+            </form>
         </div>
-        <div>
-            {{ form.submit(class='btn btn-primary') }}
-            <a href="{{ url_for('post_detail', id=comment.post_id) }}"
-               class="btn btn-default">{{ _('Cancel') }}</a>
-        </div>
-    </form>
+    </div>
 {% endblock %}

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     {% include '_post.html' %}
 
     <hr>
-    <h4>{{ _('Comments') }} ({{ post.comment_count }})</h4>
+    <h5>{{ _('Comments') }} ({{ post.comment_count }})</h5>
 
     {% if comments %}
         {% for comment in comments %}
@@ -20,19 +19,14 @@
     {% endif %}
 
     {% if current_user.is_authenticated %}
-    <h5 style="margin-top:20px;">{{ _('Leave a comment') }}</h5>
+    <h6 class="mt-4">{{ _('Leave a comment') }}</h6>
     <form method="post" action="{{ url_for('add_comment', post_id=post.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {{ form.body(class='form-control', rows=3,
-                     placeholder=_('Write a comment…')) }}
-        {% for error in form.body.errors %}
-            <span class="help-block text-danger">{{ error }}</span>
-        {% endfor %}
-        {{ form.submit(class='btn btn-primary btn-sm', style='margin-top:6px;') }}
+        {{ form.body(class='form-control mb-2', rows=3, placeholder=_('Write a comment…')) }}
+        {% for error in form.body.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        {{ form.submit(class='btn btn-primary btn-sm') }}
     </form>
     {% endif %}
 
-    <a href="{{ url_for('index') }}" class="btn btn-default" style="margin-top:12px;">
-        {{ _('Back') }}
-    </a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">{{ _('Back') }}</a>
 {% endblock %}

@@ -1,7 +1,24 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>{{ _('Edit Post') }}</h1>
-    {{ wtf.quick_form(form) }}
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.title.label(class='form-label') }}
+                    {{ form.title(class='form-control' + (' is-invalid' if form.title.errors else '')) }}
+                    {% for error in form.title.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.body.label(class='form-label') }}
+                    {{ form.body(class='form-control', rows=8) }}
+                    {% for error in form.body.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                {{ form.submit(class='btn btn-primary') }}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
+            </form>
+        </div>
+    </div>
 {% endblock %}

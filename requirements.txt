@@ -12,7 +12,6 @@ Werkzeug==2.2.2
 # Flask Extensions
 Flask-Babel==2.0.0
 Flask-Admin==1.5.6
-Flask-Bootstrap==3.3.7.1
 Flask-Compress==1.4.0
 Flask-Login==0.6.3
 Flask-Mail==0.9.1

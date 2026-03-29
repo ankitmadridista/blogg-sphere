@@ -1,11 +1,22 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>Edit Profile</h1>
     <div class="row">
         <div class="col-md-4">
-            {{ wtf.quick_form(form) }}
+            <form method="post">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.username.label(class='form-label') }}
+                    {{ form.username(class='form-control' + (' is-invalid' if form.username.errors else '')) }}
+                    {% for error in form.username.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.about_me.label(class='form-label') }}
+                    {{ form.about_me(class='form-control', rows=4) }}
+                </div>
+                {{ form.submit(class='btn btn-primary') }}
+            </form>
         </div>
     </div>
 {% endblock %}

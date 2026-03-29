@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <h3>{{ _('Search Results') }}
-        {% if q %}<small>for "{{ q }}" in {{ search_type }}</small>{% endif %}
-    </h3>
+    <h4>{{ _('Search Results') }}
+        {% if q %}<small class="text-muted fs-6">for "{{ q }}" in {{ search_type }}</small>{% endif %}
+    </h4>
 
     {% if q %}
         {% if posts %}

@@ -1,26 +1,31 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
+    <h4>Hi, {{ current_user.username }}!</h4>
     {% if form %}
-    {{ wtf.quick_form(form) }}
-    <br>
+    <form method="post" class="mb-3">
+        {{ form.hidden_tag() }}
+        <div class="mb-2">
+            {{ form.title(class='form-control mb-2', placeholder=_('Title')) }}
+            {% for error in form.title.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-2">
+            {{ form.post(class='form-control', rows=3, placeholder=_('Say something')) }}
+            {% for error in form.post.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+        {{ form.submit(class='btn btn-primary btn-sm') }}
+    </form>
     {% endif %}
     {% for post in posts %}
         {% include '_post.html' %}
     {% endfor %}
-    <nav aria-label="...">
-        <ul class="pager">
-            <li class="previous{% if not prev_url %} disabled{% endif %}">
-                <a href="{{ prev_url or '#' }}">
-                    <span aria-hidden="true">&larr;</span> Newer posts
-                </a>
+    <nav aria-label="Post navigation" class="mt-3">
+        <ul class="pagination">
+            <li class="page-item {% if not prev_url %}disabled{% endif %}">
+                <a class="page-link" href="{{ prev_url or '#' }}">&larr; Newer</a>
             </li>
-            <li class="next{% if not next_url %} disabled{% endif %}">
-                <a href="{{ next_url or '#' }}">
-                    Older posts <span aria-hidden="true">&rarr;</span>
-                </a>
+            <li class="page-item {% if not next_url %}disabled{% endif %}">
+                <a class="page-link" href="{{ next_url or '#' }}">Older &rarr;</a>
             </li>
         </ul>
     </nav>
