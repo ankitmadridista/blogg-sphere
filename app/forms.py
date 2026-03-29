@@ -87,3 +87,31 @@ class CommentForm(FlaskForm):
 class EditCommentForm(FlaskForm):
     body   = TextAreaField(_l('Comment'), validators=[DataRequired(), Length(max=2000)])
     submit = SubmitField(_l('Save'))
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField(_l('Current Password'), validators=[DataRequired()])
+    new_password = PasswordField(_l('New Password'), validators=[DataRequired()])
+    new_password2 = PasswordField(
+        _l('Repeat New Password'), validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField(_l('Change Password'))
+
+
+class ChangeEmailForm(FlaskForm):
+    email = StringField(_l('New Email'), validators=[DataRequired(), Email()])
+    submit = SubmitField(_l('Change Email'))
+
+    def __init__(self, original_email, *args, **kwargs):
+        super(ChangeEmailForm, self).__init__(*args, **kwargs)
+        self.original_email = original_email
+
+    def validate_email(self, email):
+        if email.data != self.original_email:
+            user = User.query.filter_by(email=email.data).first()
+            if user is not None:
+                raise ValidationError(_('Please use a different email address.'))
+
+
+class DeleteAccountForm(FlaskForm):
+    password = PasswordField(_l('Confirm Password'), validators=[DataRequired()])
+    submit = SubmitField(_l('Delete My Account'))

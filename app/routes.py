@@ -6,7 +6,7 @@ from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm, \
-    CommentForm, EditCommentForm
+    CommentForm, EditCommentForm, ChangePasswordForm, ChangeEmailForm, DeleteAccountForm
 from app.models import User, Post, Comment, post_like
 from app.email import send_password_reset_email
 
@@ -370,3 +370,62 @@ def toggle_like(id):
     if referrer:
         return redirect(referrer)
     return redirect(url_for('post_detail', id=id))
+
+@app.route('/account/settings', methods=['GET'])
+@login_required
+def account_settings():
+    pw_form = ChangePasswordForm()
+    email_form = ChangeEmailForm(current_user.email)
+    delete_form = DeleteAccountForm()
+    return render_template('account_settings.html', title=_('Account Settings'),
+                           pw_form=pw_form, email_form=email_form,
+                           delete_form=delete_form)
+
+
+@app.route('/account/change_password', methods=['POST'])
+@login_required
+def change_password():
+    pw_form = ChangePasswordForm()
+    if pw_form.validate_on_submit():
+        if not current_user.check_password(pw_form.current_password.data):
+            flash(_('Current password is incorrect.'), 'error')
+        else:
+            current_user.set_password(pw_form.new_password.data)
+            db.session.commit()
+            flash(_('Your password has been updated.'), 'info')
+    else:
+        for field, errors in pw_form.errors.items():
+            for error in errors:
+                flash(error, 'error')
+    return redirect(url_for('account_settings'))
+
+
+@app.route('/account/change_email', methods=['POST'])
+@login_required
+def change_email():
+    email_form = ChangeEmailForm(current_user.email)
+    if email_form.validate_on_submit():
+        current_user.email = email_form.email.data
+        db.session.commit()
+        flash(_('Your email has been updated.'), 'info')
+    else:
+        for field, errors in email_form.errors.items():
+            for error in errors:
+                flash(error, 'error')
+    return redirect(url_for('account_settings'))
+
+
+@app.route('/account/delete', methods=['POST'])
+@login_required
+def delete_account():
+    delete_form = DeleteAccountForm()
+    if delete_form.validate_on_submit():
+        if not current_user.check_password(delete_form.password.data):
+            flash(_('Incorrect password. Account not deleted.'), 'error')
+            return redirect(url_for('account_settings'))
+        current_user.is_active = False
+        db.session.commit()
+        logout_user()
+        flash(_('Your account has been deactivated.'), 'info')
+        return redirect(url_for('login'))
+    return redirect(url_for('account_settings'))
