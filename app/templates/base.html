@@ -4,6 +4,15 @@
     {{ super() }}
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Apply theme before render to avoid flash -->
+    <script>
+    (function() {
+        var saved = localStorage.getItem('theme') || 'system';
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = saved === 'dark' || (saved === 'system' && prefersDark);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+    </script>
 {% endblock %}
 
 {% block title %}
@@ -47,6 +56,16 @@
                     </li>
                     <li><a href="{{ url_for('user', username=current_user.username) }}">Profile</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                            <i class="fa fa-adjust"></i> <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li><a href="#" onclick="setTheme('light'); return false;"><i class="fa fa-sun-o"></i> Light</a></li>
+                            <li><a href="#" onclick="setTheme('dark'); return false;"><i class="fa fa-moon-o"></i> Dark</a></li>
+                            <li><a href="#" onclick="setTheme('system'); return false;"><i class="fa fa-desktop"></i> System</a></li>
+                        </ul>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -78,6 +97,20 @@
     {{ super() }}
     {{ moment.include_moment() }}
     <script>
+    function setTheme(mode) {
+        localStorage.setItem('theme', mode);
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = mode === 'dark' || (mode === 'system' && prefersDark);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    }
+
+    // Keep system theme in sync if OS preference changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (localStorage.getItem('theme') === 'system') {
+            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        }
+    });
+
     function toggleLike(el, postId, csrfToken) {
         fetch('/post/' + postId + '/like', {
             method: 'POST',
@@ -107,31 +140,60 @@
     </script>
 {% endblock %}
 
-{% block style %}
+{% block styles %}
+    {{ super() }}
     <style>
-        /* Flash message alert box styling */
-        .flash-messages .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+        /* ── Dark mode variables ── */
+        :root {
+            --bg: #fff;
+            --text: #333;
+            --navbar-bg: #f8f8f8;
+            --navbar-border: #e7e7e7;
+            --navbar-link: #777;
+            --panel-bg: #fff;
+            --panel-border: #ddd;
+            --input-bg: #fff;
+            --input-text: #555;
+            --input-border: #ccc;
+            --table-hover: #f5f5f5;
+            --muted: #777;
+            --link: #337ab7;
         }
-
-        /* Like button */
-        button.like-btn-post {
-            background: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            color: #bbb !important;
-            font-size: 14px;
-            line-height: 1;
-            vertical-align: middle;
+        [data-theme="dark"] {
+            --bg: #1a1a2e;
+            --text: #e0e0e0;
+            --navbar-bg: #16213e;
+            --navbar-border: #0f3460;
+            --navbar-link: #ccc;
+            --panel-bg: #16213e;
+            --panel-border: #0f3460;
+            --input-bg: #0f3460;
+            --input-text: #e0e0e0;
+            --input-border: #1a4a8a;
+            --table-hover: #0f3460;
+            --muted: #aaa;
+            --link: #6ea8fe;
         }
+        body { background-color: var(--bg) !important; color: var(--text) !important; }
+        .navbar-default { background-color: var(--navbar-bg) !important; border-color: var(--navbar-border) !important; }
+        .navbar-default .navbar-brand,
+        .navbar-default .navbar-nav > li > a { color: var(--navbar-link) !important; }
+        .navbar-default .navbar-nav > li > a:hover { color: var(--text) !important; }
+        .form-control { background-color: var(--input-bg) !important; color: var(--input-text) !important; border-color: var(--input-border) !important; }
+        .panel { background-color: var(--panel-bg) !important; border-color: var(--panel-border) !important; }
+        .panel-heading { background-color: var(--panel-border) !important; }
+        .table { color: var(--text) !important; }
+        .table-hover > tbody > tr:hover { background-color: var(--table-hover) !important; }
+        .text-muted { color: var(--muted) !important; }
+        a { color: var(--link); }
+        .dropdown-menu { background-color: var(--panel-bg) !important; border-color: var(--panel-border) !important; }
+        .dropdown-menu > li > a { color: var(--text) !important; }
+        .dropdown-menu > li > a:hover { background-color: var(--table-hover) !important; }
+        .modal-content { background-color: var(--panel-bg) !important; color: var(--text) !important; }
+        .modal-header, .modal-footer { border-color: var(--panel-border) !important; }
+        .flash-messages .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        button.like-btn-post { background: none !important; border: none !important; box-shadow: none !important; padding: 0; margin: 0; cursor: pointer; color: #bbb !important; font-size: 14px; line-height: 1; vertical-align: middle; }
         button.like-btn-post:hover { color: #e74c3c !important; }
         button.like-btn-post.liked { color: #e74c3c !important; }
-        button.like-btn-lg { font-size: 16px !important; }
-        small.like-btn-post { color: #bbb; }
     </style>
 {% endblock %}
