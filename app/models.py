@@ -135,6 +135,24 @@ class Post(db.Model):
             user_id=user.id, post_id=self.id).count() > 0
 
 
+class Notification(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    actor_id   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    type       = db.Column(db.String(50), nullable=False)  # follow, like, comment, reply
+    post_id    = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+    is_read    = db.Column(db.Boolean, default=False, nullable=False)
+    timestamp  = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    user  = db.relationship('User', foreign_keys=[user_id], backref=db.backref('notifications', lazy='dynamic'))
+    actor = db.relationship('User', foreign_keys=[actor_id])
+    post  = db.relationship('Post')
+
+    def __repr__(self):
+        return '<Notification {} {}>'.format(self.type, self.user_id)
+
+
 class Comment(db.Model):
     id         = db.Column(db.Integer, primary_key=True)
     body       = db.Column(db.String(2000), nullable=False)

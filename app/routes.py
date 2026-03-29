@@ -7,7 +7,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm, \
     CommentForm, EditCommentForm, ChangePasswordForm, ChangeEmailForm, DeleteAccountForm
-from app.models import User, Post, Comment, post_like, Tag
+from app.models import User, Post, Comment, post_like, Tag, Notification
 from app.email import send_password_reset_email
 
 
@@ -184,6 +184,8 @@ def follow(username):
             return redirect(url_for('user', username=username))
         current_user.follow(user)
         db.session.commit()
+        _notify(user.id, current_user, 'follow')
+        db.session.commit()
         flash(_('You are following %(username)s!', username=username), 'info')
         return redirect(url_for('user', username=username))
     else:
@@ -214,6 +216,15 @@ def _check_post_author(post):
     """Abort 403 if current_user is not the post author."""
     if post.user_id != current_user.id:
         abort(403)
+
+
+def _notify(user_id, actor, type, post_id=None, comment_id=None):
+    """Create a notification if the actor is not the recipient."""
+    if user_id == actor.id:
+        return  # don't notify yourself
+    n = Notification(user_id=user_id, actor_id=actor.id, type=type,
+                     post_id=post_id, comment_id=comment_id)
+    db.session.add(n)
 
 
 @app.route('/edit_post/<int:id>', methods=['GET', 'POST'])
@@ -288,6 +299,8 @@ def add_comment(post_id):
                           post=post, parent_id=None)
         db.session.add(comment)
         db.session.commit()
+        _notify(post.user_id, current_user, 'comment', post_id=post.id, comment_id=comment.id)
+        db.session.commit()
         flash(_('Your comment has been posted.'), 'info')
     return redirect(url_for('post_detail', id=post_id))
 
@@ -306,6 +319,8 @@ def add_reply(post_id, comment_id):
         reply = Comment(body=form.body.data, author=current_user,
                         post=post, parent_id=parent.id)
         db.session.add(reply)
+        db.session.commit()
+        _notify(parent.user_id, current_user, 'reply', post_id=post.id, comment_id=reply.id)
         db.session.commit()
         flash(_('Your reply has been posted.'), 'info')
     return redirect(url_for('post_detail', id=post_id))
@@ -380,6 +395,10 @@ def toggle_like(id):
         )
         liked = True
     db.session.commit()
+    # Notify post author on like
+    if liked:
+        _notify(post.user_id, current_user, 'like', post_id=post.id)
+        db.session.commit()
 
     # Return JSON for AJAX requests, redirect for regular form posts
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -534,3 +553,15 @@ def trending():
         ).limit(20).all()
 
     return render_template('trending.html', title=_('Trending'), posts=posts)
+
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    notifs = current_user.notifications.order_by(
+        Notification.timestamp.desc()).limit(50).all()
+    # Mark all as read
+    for n in notifs:
+        n.is_read = True
+    db.session.commit()
+    return render_template('notifications.html', title=_('Notifications'), notifications=notifs)

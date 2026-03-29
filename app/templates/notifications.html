@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h4>{{ _('Notifications') }}</h4>
+
+{% if notifications %}
+<div class="list-group mt-3">
+    {% for n in notifications %}
+    <div class="list-group-item list-group-item-action {% if not n.is_read %}fw-bold{% endif %}">
+        <div class="d-flex align-items-center gap-2">
+            <img src="{{ n.actor.avatar(32) }}" class="rounded-circle" width="32">
+            <div>
+                {% if n.type == 'follow' %}
+                    <a href="{{ url_for('user', username=n.actor.username) }}">{{ n.actor.username }}</a> started following you.
+                {% elif n.type == 'like' %}
+                    <a href="{{ url_for('user', username=n.actor.username) }}">{{ n.actor.username }}</a> liked your post
+                    {% if n.post %}<a href="{{ url_for('post_detail', id=n.post_id) }}">"{{ n.post.title }}"</a>{% endif %}.
+                {% elif n.type == 'comment' %}
+                    <a href="{{ url_for('user', username=n.actor.username) }}">{{ n.actor.username }}</a> commented on your post
+                    {% if n.post %}<a href="{{ url_for('post_detail', id=n.post_id) }}">"{{ n.post.title }}"</a>{% endif %}.
+                {% elif n.type == 'reply' %}
+                    <a href="{{ url_for('user', username=n.actor.username) }}">{{ n.actor.username }}</a> replied to your comment
+                    {% if n.post %} on <a href="{{ url_for('post_detail', id=n.post_id) }}">"{{ n.post.title }}"</a>{% endif %}.
+                {% endif %}
+                <small class="text-muted ms-2">{{ moment(n.timestamp).fromNow() }}</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted mt-3">{{ _('No notifications yet.') }}</p>
+{% endif %}
+{% endblock %}

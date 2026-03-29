@@ -54,6 +54,15 @@
                         </form>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('user', username=current_user.username) }}">Profile</a></li>
+                    <li class="nav-item">
+                        {% set unread = current_user.notifications.filter_by(is_read=False).count() %}
+                        <a class="nav-link position-relative" href="{{ url_for('notifications') }}">
+                            <i class="bi bi-bell"></i>
+                            {% if unread > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">{{ unread }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
