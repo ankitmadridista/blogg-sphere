@@ -13,6 +13,13 @@ followers = db.Table(
     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+post_like = db.Table(
+    'post_like',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), nullable=False),
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), nullable=False),
+    db.PrimaryKeyConstraint('user_id', 'post_id')
+)
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,6 +103,16 @@ class Post(db.Model):
     @property
     def comment_count(self):
         return self.comments.filter_by(is_deleted=False).count()
+
+    @property
+    def like_count(self):
+        return db.session.query(post_like).filter_by(post_id=self.id).count()
+
+    def is_liked_by(self, user):
+        if user is None or not hasattr(user, 'id'):
+            return False
+        return db.session.query(post_like).filter_by(
+            user_id=user.id, post_id=self.id).count() > 0
 
 
 class Comment(db.Model):

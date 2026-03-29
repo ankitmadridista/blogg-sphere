@@ -7,7 +7,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, EditPostForm, \
     CommentForm, EditCommentForm
-from app.models import User, Post, Comment
+from app.models import User, Post, Comment, post_like
 from app.email import send_password_reset_email
 
 
@@ -317,3 +317,27 @@ def delete_comment(id):
     db.session.commit()
     flash(_('Your comment has been deleted.'), 'info')
     return redirect(url_for('post_detail', id=comment.post_id))
+
+
+@app.route('/post/<int:id>/like', methods=['POST'])
+@login_required
+def toggle_like(id):
+    post = Post.query.get_or_404(id)
+    if post.is_deleted:
+        abort(404)
+    if post.is_liked_by(current_user):
+        db.session.execute(
+            post_like.delete().where(
+                (post_like.c.user_id == current_user.id) &
+                (post_like.c.post_id == post.id)
+            )
+        )
+    else:
+        db.session.execute(
+            post_like.insert().values(user_id=current_user.id, post_id=post.id)
+        )
+    db.session.commit()
+    referrer = request.referrer
+    if referrer:
+        return redirect(referrer)
+    return redirect(url_for('post_detail', id=id))

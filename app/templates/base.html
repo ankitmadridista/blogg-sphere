@@ -3,6 +3,7 @@
 {% block head %}
     {{ super() }}
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 {% endblock %}
 
 {% block title %}
@@ -71,6 +72,34 @@
             padding: 15px;
             margin-bottom: 20px;
             border-radius: 5px;
+        }
+
+        /* Like button — override Bootstrap button defaults */
+        button.like-btn,
+        button.like-btn:focus,
+        button.like-btn:active {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            padding: 2px 4px;
+            cursor: pointer;
+            color: #bbb !important;
+            font-size: 14px;
+            transition: color 0.2s ease, transform 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            vertical-align: middle;
+        }
+        button.like-btn:hover {
+            color: #e74c3c !important;
+            transform: scale(1.15);
+        }
+        button.like-btn.liked,
+        button.like-btn.liked:focus,
+        button.like-btn.liked:active {
+            color: #e74c3c !important;
         }
     </style>
 {% endblock %}
