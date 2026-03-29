@@ -308,6 +308,27 @@ def edit_comment(id):
                            form=form, comment=comment)
 
 
+@app.route('/search')
+@login_required
+def search():
+    q = request.args.get('q', '').strip()
+    search_type = request.args.get('type', 'title')
+    posts = []
+    if q:
+        if search_type == 'body':
+            posts = Post.query.filter(
+                Post.is_deleted == False,
+                Post.body.ilike(f'%{q}%')
+            ).order_by(Post.timestamp.desc()).all()
+        else:
+            posts = Post.query.filter(
+                Post.is_deleted == False,
+                Post.title.ilike(f'%{q}%')
+            ).order_by(Post.timestamp.desc()).all()
+    return render_template('search.html', title=_('Search'),
+                           posts=posts, q=q, search_type=search_type)
+
+
 @app.route('/comment/<int:id>/delete', methods=['POST'])
 @login_required
 def delete_comment(id):
