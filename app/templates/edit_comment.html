@@ -1,9 +1,19 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>{{ _('Edit Comment') }}</h1>
-    {{ wtf.quick_form(form) }}
-    <a href="{{ url_for('post_detail', id=comment.post_id) }}"
-       class="btn btn-default">{{ _('Cancel') }}</a>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            {{ form.body(class='form-control', rows=4) }}
+            {% for error in form.body.errors %}
+                <span class="help-block text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.submit(class='btn btn-primary') }}
+            <a href="{{ url_for('post_detail', id=comment.post_id) }}"
+               class="btn btn-default">{{ _('Cancel') }}</a>
+        </div>
+    </form>
 {% endblock %}
