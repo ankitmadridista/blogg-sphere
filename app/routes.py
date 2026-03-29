@@ -332,11 +332,19 @@ def toggle_like(id):
                 (post_like.c.post_id == post.id)
             )
         )
+        liked = False
     else:
         db.session.execute(
             post_like.insert().values(user_id=current_user.id, post_id=post.id)
         )
+        liked = True
     db.session.commit()
+
+    # Return JSON for AJAX requests, redirect for regular form posts
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from flask import jsonify
+        return jsonify({'liked': liked, 'like_count': post.like_count})
+
     referrer = request.referrer
     if referrer:
         return redirect(referrer)

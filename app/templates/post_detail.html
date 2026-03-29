@@ -2,28 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <style>
-        .like-btn{background:none;border:none;padding:0;margin:0;cursor:pointer;font-size:16px;line-height:1}
-        .like-btn-active{color:#e74c3c}
-        .like-btn-inactive{color:#bbb}
-    </style>
     {% include '_post.html' %}
-
-    <div style="margin-bottom:10px;">
-        {% if current_user.is_authenticated %}
-        {% set liked = post.is_liked_by(current_user) %}
-        <form method="post" action="{{ url_for('toggle_like', id=post.id) }}" style="display:inline; margin:0; padding:0;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="like-btn {{ 'like-btn-active' if liked else 'like-btn-inactive' }}">
-                <i class="fa {% if liked %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
-                {% if liked %}{{ _('Unlike') }}{% else %}{{ _('Like') }}{% endif %}
-                ({{ post.like_count }})
-            </button>
-        </form>
-        {% else %}
-        <span style="color:#bbb;"><i class="fa fa-heart-o"></i> {{ post.like_count }}</span>
-        {% endif %}
-    </div>
 
     <hr>
     <h4>{{ _('Comments') }} ({{ post.comment_count }})</h4>

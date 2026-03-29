@@ -61,8 +61,36 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ super() }}     <!-- super() statement, which preserves the content from the base template -->
+    {{ super() }}
     {{ moment.include_moment() }}
+    <script>
+    function toggleLike(el, postId, csrfToken) {
+        fetch('/post/' + postId + '/like', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'csrf_token=' + encodeURIComponent(csrfToken)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var icon = el.querySelector('i');
+            var countEl = el.querySelector('.like-count');
+            var labelEl = el.querySelector('.like-label');
+            if (data.liked) {
+                el.style.color = '#e74c3c';
+                icon.className = 'fa fa-heart';
+                if (labelEl) labelEl.textContent = 'Unlike';
+            } else {
+                el.style.color = '#bbb';
+                icon.className = 'fa fa-heart-o';
+                if (labelEl) labelEl.textContent = 'Like';
+            }
+            if (countEl) countEl.textContent = data.like_count;
+        });
+    }
+    </script>
 {% endblock %}
 
 {% block style %}
@@ -74,32 +102,22 @@
             border-radius: 5px;
         }
 
-        /* Like button — override Bootstrap button defaults */
-        button.like-btn,
-        button.like-btn:focus,
-        button.like-btn:active {
+        /* Like button */
+        button.like-btn-post {
             background: none !important;
             border: none !important;
             box-shadow: none !important;
-            outline: none !important;
-            padding: 2px 4px;
+            padding: 0;
+            margin: 0;
             cursor: pointer;
             color: #bbb !important;
             font-size: 14px;
-            transition: color 0.2s ease, transform 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+            line-height: 1;
             vertical-align: middle;
         }
-        button.like-btn:hover {
-            color: #e74c3c !important;
-            transform: scale(1.15);
-        }
-        button.like-btn.liked,
-        button.like-btn.liked:focus,
-        button.like-btn.liked:active {
-            color: #e74c3c !important;
-        }
+        button.like-btn-post:hover { color: #e74c3c !important; }
+        button.like-btn-post.liked { color: #e74c3c !important; }
+        button.like-btn-lg { font-size: 16px !important; }
+        small.like-btn-post { color: #bbb; }
     </style>
 {% endblock %}

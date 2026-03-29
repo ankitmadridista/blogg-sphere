@@ -23,14 +23,14 @@
                 &nbsp;
                 {% if current_user.is_authenticated %}
                 {% set liked = post.is_liked_by(current_user) %}
-                <form method="post" action="{{ url_for('toggle_like', id=post.id) }}" style="display:inline; margin:0; padding:0;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" style="background:none;border:none;padding:0;margin:0;cursor:pointer;color:{% if liked %}#e74c3c{% else %}#bbb{% endif %};font-size:14px;line-height:1;">
-                        <i class="fa {% if liked %}fa-heart{% else %}fa-heart-o{% endif %}"></i> {{ post.like_count }}
-                    </button>
-                </form>
+                <span onclick="toggleLike(this, {{ post.id }}, '{{ csrf_token() }}')"
+                      data-liked="{{ 'true' if liked else 'false' }}"
+                      style="cursor:pointer; color:{{ '#e74c3c' if liked else '#bbb' }}; font-size:14px; user-select:none;">
+                    <i class="fa {{ 'fa-heart' if liked else 'fa-heart-o' }}"></i>
+                    <span class="like-count">{{ post.like_count }}</span>
+                </span>
                 {% else %}
-                <small style="color:#bbb;"><i class="fa fa-heart-o"></i> {{ post.like_count }}</small>
+                <span style="color:#bbb; font-size:14px;"><i class="fa fa-heart-o"></i> {{ post.like_count }}</span>
                 {% endif %}
             </div>
 
