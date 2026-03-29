@@ -429,3 +429,48 @@ def delete_account():
         flash(_('Your account has been deactivated.'), 'info')
         return redirect(url_for('login'))
     return redirect(url_for('account_settings'))
+
+
+@app.route('/account/upload_avatar', methods=['POST'])
+@login_required
+def upload_avatar():
+    import cloudinary
+    import cloudinary.uploader
+    import os
+    cloudinary_url = os.environ.get('CLOUDINARY_URL')
+    if not cloudinary_url:
+        flash(_('Cloudinary is not configured.'), 'error')
+        return redirect(url_for('account_settings'))
+    cloudinary.config(cloudinary_url=cloudinary_url)
+
+    file = request.files.get('avatar')
+    if not file or file.filename == '':
+        flash(_('No file selected.'), 'warning')
+        return redirect(url_for('account_settings'))
+
+    allowed = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed:
+        flash(_('Invalid file type. Please upload an image.'), 'error')
+        return redirect(url_for('account_settings'))
+
+    result = cloudinary.uploader.upload(
+        file,
+        folder='blogg-sphere/avatars',
+        public_id=f'user_{current_user.id}',
+        overwrite=True,
+        transformation=[{'width': 200, 'height': 200, 'crop': 'fill', 'gravity': 'face'}]
+    )
+    current_user.avatar_url = result['secure_url']
+    db.session.commit()
+    flash(_('Profile picture updated.'), 'info')
+    return redirect(url_for('account_settings'))
+
+
+@app.route('/account/remove_avatar', methods=['POST'])
+@login_required
+def remove_avatar():
+    current_user.avatar_url = None
+    db.session.commit()
+    flash(_('Profile picture removed.'), 'info')
+    return redirect(url_for('account_settings'))

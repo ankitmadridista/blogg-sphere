@@ -8,6 +8,7 @@ __pycache__/
 # Flask-related
 instance/
 .webassets-cache
+.flaskenv
 
 # Database
 app.db
