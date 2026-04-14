@@ -22,26 +22,64 @@
         .like-btn-post { background: none; border: none; padding: 0; margin: 0; cursor: pointer; color: #bbb; font-size: 14px; line-height: 1; vertical-align: middle; }
         .like-btn-post:hover { color: #e74c3c; }
         .like-btn-post.liked { color: #e74c3c; }
+        .navbar { transition: box-shadow .2s ease; }
+        .navbar.scrolled { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .nav-link { transition: color .15s ease; }
+        .nav-icon-group { display: flex; align-items: center; gap: .25rem; }
+        @media (max-width: 767.98px) {
+            .navbar-nav .nav-link { padding: .6rem 0; }
+            .nav-search-wrapper { order: 10; width: 100%; padding-top: .5rem; border-top: 1px solid var(--bs-border-color); margin-top: .5rem; }
+            .nav-divider-mobile { border-top: 1px solid var(--bs-border-color); margin: .5rem 0; }
+            .nav-icon-group { gap: .75rem; padding: .4rem 0; }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg border-bottom" style="background-color: var(--bs-body-bg)">
+    <nav class="navbar navbar-expand-md sticky-top border-bottom" style="background-color: var(--bs-body-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">blogg-sphere</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" width="24" height="24" class="me-1">blogg-sphere
+            </a>
+
+            {# Mobile-only icon tray: theme + notifications (always visible) #}
+            <div class="d-flex align-items-center gap-2 d-md-none">
+                {% if not current_user.is_anonymous %}
+                {% set unread = current_user.notifications.filter_by(is_read=False).count() %}
+                <a class="nav-link position-relative p-1" href="{{ url_for('notifications') }}">
+                    <i class="bi bi-bell fs-5"></i>
+                    {% if unread > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem;">{{ unread }}</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+                <div class="dropdown">
+                    <a class="nav-link p-1" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-circle-half fs-5"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="setTheme('light'); return false;"><i class="bi bi-sun"></i> Light</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="setTheme('dark'); return false;"><i class="bi bi-moon"></i> Dark</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="setTheme('system'); return false;"><i class="bi bi-display"></i> System</a></li>
+                    </ul>
+                </div>
+                <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
             <div class="collapse navbar-collapse" id="navbarMain">
+                {# Left nav links #}
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('explore') }}">Explore</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('trending') }}">Trending</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('explore') }}"><i class="bi bi-compass me-1"></i>Explore</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('trending') }}"><i class="bi bi-fire me-1"></i>Trending</a></li>
                 </ul>
-                <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                {# Right side #}
+                <ul class="navbar-nav ms-auto align-items-md-center">
                     {% if current_user.is_anonymous %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a></li>
                     {% else %}
-                    <li class="nav-item me-lg-2 my-2 my-lg-0">
+                    {# Search — full-width row on mobile #}
+                    <li class="nav-item nav-search-wrapper me-md-2">
                         <form class="d-flex" method="get" action="{{ url_for('search') }}" onsubmit="return this.q.value.trim() !== '';">
                             <div class="input-group input-group-sm">
                                 <select name="type" class="form-select form-select-sm flex-shrink-0" style="max-width:90px;">
@@ -49,27 +87,46 @@
                                     <option value="body">Body</option>
                                 </select>
                                 <input type="text" name="q" class="form-control form-control-sm" placeholder="Search…">
-                                <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="fa fa-search"></i></button>
+                                <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
                             </div>
                         </form>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('user', username=current_user.username) }}">Profile</a></li>
-                    {% if current_user.is_admin %}
-                    <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin_dashboard') }}">Admin</a></li>
-                    {% endif %}
-                    <li class="nav-item">
+
+                    <div class="nav-divider-mobile d-md-none"></div>
+
+                    {# User dropdown (avatar + username) #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ current_user.avatar(24) }}" class="rounded-circle" width="24" height="24" alt="">
+                            <span>{{ current_user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('user', username=current_user.username) }}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('account_settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                            {% if current_user.is_admin %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-warning" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+
+                    {# Desktop-only icon group: notifications + theme #}
+                    <li class="nav-item d-none d-md-flex nav-icon-group ms-1">
                         {% set unread = current_user.notifications.filter_by(is_read=False).count() %}
-                        <a class="nav-link position-relative" href="{{ url_for('notifications') }}">
+                        <a class="nav-link position-relative" href="{{ url_for('notifications') }}" title="Notifications">
                             <i class="bi bi-bell"></i>
                             {% if unread > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">{{ unread }}</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem;">{{ unread }}</span>
                             {% endif %}
                         </a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
                     {% endif %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+
+                    {# Theme toggle — desktop only (mobile has it in the top tray) #}
+                    <li class="nav-item dropdown d-none d-md-block">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false" title="Theme">
                             <i class="bi bi-circle-half"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
@@ -135,6 +192,10 @@
             if (countEl) countEl.textContent = data.like_count;
         });
     }
+    // Add shadow to navbar on scroll
+    window.addEventListener('scroll', function() {
+        document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 10);
+    });
     </script>
     {% block scripts %}{% endblock %}
 </body>
